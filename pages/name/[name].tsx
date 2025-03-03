@@ -1,22 +1,22 @@
 import { Layout } from '../../components/layouts';
 import type { GetStaticProps, NextPage, GetStaticPaths } from 'next';
-import { SinglePokemon } from '../../interfaces';
-import confetti from 'canvas-confetti';
+import { PokemonListResponse, SinglePokemon } from '../../interfaces';
+import { pokeApi } from '../../api';
 import { Button, Card, Container, Grid, Image, Row, Text } from '@nextui-org/react';
 import { getPokemonInfo, localStorageFavorites } from '../../libs/utils';
 import { useState } from 'react';
+import confetti from 'canvas-confetti';
 
 interface Props {
   pokemon: SinglePokemon;
 }
-const PokenmonPage: NextPage<Props> = ({ pokemon }) => {
+const PokenmonByNamePage: NextPage<Props> = ({ pokemon }) => {
   const [isInFavorites, setIsInFavorites] = useState(
     localStorageFavorites.existsInFavorites(pokemon.id),
   );
   const onToggleFavorite = () => {
     localStorageFavorites.toggleFavorite(pokemon.id);
     setIsInFavorites(!isInFavorites);
-
     if (isInFavorites) return;
 
     confetti({
@@ -97,24 +97,24 @@ const PokenmonPage: NextPage<Props> = ({ pokemon }) => {
 // You should use getStaticPaths if you’re statically pre-rendering pages that use dynamic routes
 
 export const getStaticPaths: GetStaticPaths = async ctx => {
-  const pokemos151 = [...Array(151)].map((_, index) => `${index + 1}`);
-
+  const { data } = await pokeApi.get<PokemonListResponse>('/pokemon?limit=151');
+  const pokemonNames: string[] = data.results.map(pokemon => pokemon.name);
   return {
-    paths: pokemos151.map(id => ({
-      params: { id },
+    paths: pokemonNames.map(name => ({
+      params: { name },
     })),
     fallback: false,
   };
 };
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-  const { id } = params as { id: string };
+  const { name } = params as { name: string };
 
   return {
     props: {
-      pokemon: await getPokemonInfo(id),
+      pokemon: await getPokemonInfo(name),
     },
   };
 };
 
-export default PokenmonPage;
+export default PokenmonByNamePage;

@@ -1,21 +1,30 @@
-const toggleFavorite = (id: number): void => {
-  const favoritePokemonsKey = 'favoritePokemons';
-  const storedFavorites = localStorage.getItem(favoritePokemonsKey);
-  const favoritePokemons: number[] = storedFavorites ? JSON.parse(storedFavorites) : [];
+const FAVORITE_POKEMONS_KEY = 'favoritePokemons';
 
-  const updatedFavorites = favoritePokemons.includes(id)
+const getFavoritePokemons = (): number[] => {
+  const storedFavorites = localStorage.getItem(FAVORITE_POKEMONS_KEY);
+  return storedFavorites ? JSON.parse(storedFavorites) : [];
+};
+
+const saveFavoritePokemons = (favoritePokemons: number[]): void => {
+  localStorage.setItem(FAVORITE_POKEMONS_KEY, JSON.stringify(favoritePokemons));
+};
+
+const toggleFavorite = (id: number): void => {
+  const favoritePokemons = getFavoritePokemons();
+  const isFavorite = favoritePokemons.includes(id);
+  const updatedFavorites = isFavorite
     ? favoritePokemons.filter(pokeId => pokeId !== id)
     : [...favoritePokemons, id];
-
-  localStorage.setItem(favoritePokemonsKey, JSON.stringify(updatedFavorites));
+  saveFavoritePokemons(updatedFavorites);
 };
 
 const existsInFavorites = (id: number): boolean => {
   if (typeof window === 'undefined') return false;
-  const favoritePokemonsKey = 'favoritePokemons';
-  const storedFavorites = localStorage.getItem(favoritePokemonsKey);
-  const favoritePokemons: number[] = storedFavorites ? JSON.parse(storedFavorites) : [];
-  return favoritePokemons.includes(id);
+  return getFavoritePokemons().includes(id);
 };
 
-export default { toggleFavorite, existsInFavorites };
+const localPokemons = (): number[] => {
+  return getFavoritePokemons();
+};
+
+export default { toggleFavorite, existsInFavorites, localPokemons };
